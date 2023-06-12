@@ -7,9 +7,6 @@
 #[derive(Clone)]
 pub struct TokioBucketRateLimiter {
     status: std::sync::Arc<TokioBucketRateLimiterStatus>,
-
-    // wrapped in `Arc<Mutex<...>>` to satisfy `Clone` and `Send` requirements.
-    handle: std::sync::Arc<std::sync::Mutex<Option<tokio::task::JoinHandle<()>>>>,
 }
 
 #[doc(cfg(feature = "tokio"))]
@@ -61,19 +58,15 @@ impl TokioBucketRateLimiter {
         });
 
         let status_clone = status.clone();
-        let handle = tokio::spawn(async move {
+        tokio::spawn(async move {
             TokioBucketRateLimiter::proc(status_clone).await;
         });
 
-        Self {
-            status,
-            handle: std::sync::Arc::new(std::sync::Mutex::new(Some(handle))),
-        }
+        Self { status }
     }
 
     async fn proc(status: std::sync::Arc<TokioBucketRateLimiterStatus>) {
         let mut interval = tokio::time::interval(tokio::time::Duration::from(status.duration));
-        interval.tick().await; // The first tick completes immediately.
 
         loop {
             tokio::select! {
