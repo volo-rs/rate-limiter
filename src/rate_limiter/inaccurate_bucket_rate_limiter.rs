@@ -19,6 +19,8 @@ struct InaccurateBucketRateLimiterSharedStatus {
     duration_in_nanos: u64,
     quota: i64,
 
+    clock: quanta::Clock,
+    base_instant: quanta::Instant,
     last_updated_timestamp_in_nanos: std::sync::atomic::AtomicU64,
     tokens: std::sync::atomic::AtomicI64,
 }
@@ -34,20 +36,29 @@ impl InaccurateBucketRateLimiter {
     pub fn new(duration: impl Into<std::time::Duration>, quota: u64) -> Self {
         let quota: i64 = quota.try_into().expect("limit quota out of range");
 
+        let clock = quanta::Clock::new();
+        let base_instant = clock.now();
+
         Self(std::sync::Arc::new(
             InaccurateBucketRateLimiterSharedStatus {
                 duration_in_nanos: duration.into().as_nanos() as u64,
-                quota: quota,
-                last_updated_timestamp_in_nanos: std::sync::atomic::AtomicU64::new(
-                    Self::now_timestamp_in_nanos(),
-                ),
+                quota,
+                clock,
+                base_instant,
+                last_updated_timestamp_in_nanos: std::sync::atomic::AtomicU64::new(0),
                 tokens: std::sync::atomic::AtomicI64::new(quota),
             },
         ))
     }
 
     fn fill_tokens(&self) {
-        let now = Self::now_timestamp_in_nanos();
+        let now = self
+            .0
+            .clock
+            .now()
+            .duration_since(self.0.base_instant)
+            .as_nanos() as u64;
+
         let last_updated = self
             .0
             .last_updated_timestamp_in_nanos
@@ -83,12 +94,5 @@ impl InaccurateBucketRateLimiter {
                 Err(())
             }
         }
-    }
-
-    fn now_timestamp_in_nanos() -> u64 {
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos() as u64
     }
 }

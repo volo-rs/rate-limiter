@@ -1,7 +1,7 @@
 /// A bucket rate limiter implementation, using a dedicated [tokio] task as token producer.
 ///
 /// This rate limiter implementation requires the server using [tokio] as its runtime.
-/// 
+///
 /// This limiter is also usally preferred if the server uses [tokio].
 #[doc(cfg(feature = "tokio"))]
 #[derive(Clone)]
@@ -77,7 +77,7 @@ impl TokioBucketRateLimiter {
 
     async fn proc(status: std::sync::Arc<TokioBucketRateLimiterStatus>) {
         let mut interval = tokio::time::interval(tokio::time::Duration::from(status.duration));
-        interval.tick().await;  // The first tick completes immediately.
+        interval.tick().await; // The first tick completes immediately.
 
         loop {
             tokio::select! {
