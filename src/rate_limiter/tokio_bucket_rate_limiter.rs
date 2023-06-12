@@ -45,10 +45,6 @@ impl crate::RateLimiter for TokioBucketRateLimiter {
 impl Drop for TokioBucketRateLimiter {
     fn drop(&mut self) {
         self.status.notify.notify_one();
-
-        // XXX: block on async funtion in sync function
-        futures::executor::block_on(self.handle.lock().unwrap().take().unwrap())
-            .expect("joining task panicked");
     }
 }
 
