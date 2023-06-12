@@ -1,4 +1,6 @@
 /// A bucket rate limiter implementation, using a dedicated [std::thread::Thread] as token producer.
+/// 
+/// This limiter is usally preferred if the server uses a runtime other than [tokio].
 #[derive(Clone)]
 pub struct ThreadingBucketRateLimiter {
     status: std::sync::Arc<ThreadingBucketRateLimiterStatus>,

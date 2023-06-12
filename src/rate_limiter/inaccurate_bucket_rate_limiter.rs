@@ -2,6 +2,8 @@
 ///
 /// The operations are lock-free and based on atomic CAS operations.
 ///
+/// Try using this limiter if the server
+///
 /// # Notice
 ///
 /// Note that this implementation does not provide a precise limitation.
