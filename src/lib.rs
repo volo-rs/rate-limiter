@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(doc_cfg)]
 #![feature(impl_trait_in_assoc_type)]
 
 mod rate_limit_error;
