@@ -12,6 +12,9 @@ pub use inaccurate_bucket_rate_limiter::*;
 mod threading_bucket_rate_limiter;
 pub use threading_bucket_rate_limiter::*;
 
+mod token_bucket_rate_limiter;
+pub use token_bucket_rate_limiter::*;
+
 #[cfg(feature = "tokio")]
 mod tokio_bucket_rate_limiter;
 #[cfg(feature = "tokio")]

@@ -5,9 +5,10 @@ This crate implements rate limiter layer for Volo-based service.
 ## Different Implementations of Rate Limiter
 
 This crate provides multiple implementation options, see:
-- [InaccurateBucketRateLimiter]
-- [ThreadingBucketRateLimiter]
-- [TokioBucketRateLimiter]
+- [InaccurateBucketRateLimiter](src/rate_limiter/inaccurate_bucket_rate_limiter.rs)
+- [ThreadingBucketRateLimiter](src/rate_limiter/threading_bucket_rate_limiter.rs)
+- [TokioBucketRateLimiter](src/rate_limiter/tokio_bucket_rate_limiter.rs)
+- [TokenBucketRateLimiter](src/rate_limiter/token_bucket_rate_limiter.rs)
 
 ## Quick Start
 
