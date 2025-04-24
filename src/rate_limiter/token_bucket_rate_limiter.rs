@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_token_bucket_rate_limiter() {
-        let limiter = TokenBucketRateLimiter::new(10, 10);
+        let limiter = TokenBucketRateLimiter::new(1, 1);
         std::thread::sleep(std::time::Duration::from_secs(2));
         assert_eq!(limiter.acquire(), Ok(()));
         assert_eq!(limiter.acquire(), Err(()));
