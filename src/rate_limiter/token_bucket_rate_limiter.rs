@@ -1,30 +1,31 @@
 /// A token bucket rate limiter implementation bases on lazy-update strategy.
-
 use crate::RateLimiter;
 use std::cmp::min;
 use std::sync::Mutex;
 
-pub struct TokenBucketRateLimiter(Mutex<TokenBucketRateLimiterStatus>);
+pub struct TokenBucketRateLimiter {
+    status: Mutex<TokenBucketRateLimiterStatus>,
+    clock: quanta::Clock,
+    base_instant: quanta::Instant,
+}
 
 pub struct TokenBucketRateLimiterStatus {
     rate_in_seconds: i64,
     capacity: i64,
 
-    clock: quanta::Clock,
-    base_instant: quanta::Instant,
     last_updated_timestamp_in_seconds: i64,
     tokens: i64,
 }
 
 impl RateLimiter for TokenBucketRateLimiter {
     fn acquire(&self) -> Result<(), ()> {
-        let mut guard = self.0.lock().unwrap_or_else(|poison| poison.into_inner());
+        let now = self.clock.now().duration_since(self.base_instant).as_secs() as i64;
 
-        let now = guard
-            .clock
-            .now()
-            .duration_since(guard.base_instant)
-            .as_secs() as i64;
+        let mut guard = self
+            .status
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
+        
         let last_updated = guard.last_updated_timestamp_in_seconds;
         
         let tokens = min(
@@ -48,14 +49,16 @@ impl TokenBucketRateLimiter {
         let clock = quanta::Clock::new();
         let base_instant = clock.now();
 
-        Self(Mutex::new(TokenBucketRateLimiterStatus {
-            rate_in_seconds,
-            capacity,
+        Self {
+            status: Mutex::new(TokenBucketRateLimiterStatus {
+                rate_in_seconds,
+                capacity,
+                last_updated_timestamp_in_seconds: 0,
+                tokens: 0,
+            }),
             clock,
             base_instant,
-            last_updated_timestamp_in_seconds: 0,
-            tokens: 0,
-        }))
+        }
     }
 }
 
