@@ -1,6 +1,6 @@
 /// A token bucket rate limiter implementation bases on lazy-update strategy.
 use crate::RateLimiter;
-use std::cmp::min;
+use std::cmp::{max, min};
 use std::sync::Mutex;
 
 pub struct TokenBucketRateLimiter {
@@ -25,12 +25,12 @@ impl RateLimiter for TokenBucketRateLimiter {
             .status
             .lock()
             .unwrap_or_else(|poison| poison.into_inner());
-        
-        let last_updated = guard.last_updated_timestamp_in_seconds;
-        
+
+        let escaped = max(now - guard.last_updated_timestamp_in_seconds, 0);
+
         let tokens = min(
             guard.capacity,
-            guard.tokens + (now - last_updated) * guard.rate_in_seconds,
+            guard.tokens + escaped * guard.rate_in_seconds,
         );
 
         if tokens <= 0 {
