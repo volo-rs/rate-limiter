@@ -21,7 +21,9 @@ impl RateLimiter for ShardingTokenBucketRateLimiter {
 
 impl ShardingTokenBucketRateLimiter {
     pub fn new(rate_in_seconds: i64, capacity: i64) -> Self {
-        let mut parallelism = available_parallelism().unwrap().get() as i64;
+        // use the number of physical CPUs to avoid burst computing 
+        // that causes the maximum parallelism to exceed the cgroups limit
+        let mut parallelism = num_cpus::get_physical() as i64;
         parallelism = min(parallelism, rate_in_seconds);
         parallelism = min(parallelism, capacity);
 
@@ -32,7 +34,7 @@ impl ShardingTokenBucketRateLimiter {
 
         let mut rates = vec![sharding_rate; parallelism as usize];
         let mut capacities = vec![sharding_capacity; parallelism as usize];
-        
+
         for i in 0..remind_rate {
             let i = i as usize;
             rates[i] = rates[i] + 1
